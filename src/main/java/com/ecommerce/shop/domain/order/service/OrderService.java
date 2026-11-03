@@ -1,8 +1,12 @@
 package com.ecommerce.shop.domain.order.service;
 
 import com.ecommerce.shop.domain.entitlement.repository.EntitlementRepository;
+import com.ecommerce.shop.domain.order.dto.Order;
 import com.ecommerce.shop.domain.order.dto.OrderPaymentInitResponseDto;
+import com.ecommerce.shop.domain.order.mapper.OrderMapper;
+import com.ecommerce.shop.domain.product.repository.ProductRepository;
 import com.ecommerce.shop.exception.payment.PaymentNotFoundException;
+import com.ecommerce.shop.exception.product.ProductNotFoundException;
 import com.ecommerce.shop.exception.user.UserNotFoundException;
 import com.ecommerce.shop.domain.cart.entity.CartEntity;
 import com.ecommerce.shop.domain.entitlement.entity.EntitlementEntity;
@@ -11,7 +15,6 @@ import com.ecommerce.shop.domain.order.entity.OrderEntity;
 import com.ecommerce.shop.domain.order.entity.OrderStatus;
 import com.ecommerce.shop.domain.order.entity.OrderItemEntity;
 import com.ecommerce.shop.domain.payment.entity.PaymentEntity;
-import com.ecommerce.shop.domain.payment.entity.PaymentStatus;
 import com.ecommerce.shop.domain.order.repository.OrderItemRepository;
 import com.ecommerce.shop.domain.order.repository.OrderRepository;
 import com.ecommerce.shop.domain.payment.repository.PaymentRepository;
@@ -41,39 +44,51 @@ public class OrderService {
     private final PaymentRepository paymentRepository;
     private final OrderItemRepository orderItemRepository;
     private final EntitlementRepository entitlementRepository;
+    private final ProductRepository productRepository;
+    private final OrderMapper orderMapper;
+
 
     @Value("${frontend.url}")
     private  String frontendUrl;
 
-    public OrderService(UserRepository userRepository, OrderRepository orderRepository, PaymentRepository paymentRepository, OrderItemRepository orderItemRepository, EntitlementRepository entitlementRepository) {
+    public OrderService(
+            UserRepository userRepository,
+            OrderRepository orderRepository,
+            PaymentRepository paymentRepository,
+            OrderItemRepository orderItemRepository,
+            EntitlementRepository entitlementRepository,
+            ProductRepository productRepository, OrderMapper orderMapper
+    ) {
         this.userRepository = userRepository;
         this.orderRepository = orderRepository;
 
         this.paymentRepository = paymentRepository;
         this.orderItemRepository = orderItemRepository;
         this.entitlementRepository = entitlementRepository;
+        this.productRepository = productRepository;
+        this.orderMapper = orderMapper;
     }
-
     @Transactional
-    public OrderPaymentInitResponseDto initiateOrderPayment(Long userId){
-
+    public Order createOrder(Long userId){
         UserEntity user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         CartEntity cart = user.getCart();
         Set<ProductEntity> products = cart.getProducts();
         BigDecimal totalPrice = products.stream().map(ProductEntity::getPrice).reduce(BigDecimal.ZERO, BigDecimal::add);
-        List<OrderItemEntity> orderItems = products.stream().map(p-> new OrderItemEntity(p, Currency.PLN, p.getPrice())).toList();
-
+        List<OrderItemEntity> orderItems = products.stream().map(p-> new OrderItemEntity(p.getId(),p.getName(), p.getPrice(), Currency.PLN)).toList();
         OrderEntity order = new OrderEntity(user, totalPrice, OrderStatus.PENDING, Currency.PLN,orderItems);
-
-
-        PaymentEntity payment = new PaymentEntity(PaymentStatus.processing, order.getTotalPrice(), Currency.PLN );
-        order.setPayment(payment);
-
         orderRepository.save(order);
-
-        String sessionUrl = getSessionUrl(user, order);
-        return new OrderPaymentInitResponseDto(sessionUrl);
+        return orderMapper.convertToDomain(order);
     }
+//    TODO:REPLACE ON CheckoutAttempt payment
+//    @Transactional
+//    public OrderPaymentInitResponseDto initiateOrderPayment(Long userId){
+//
+//
+//
+//
+//        String sessionUrl = getSessionUrl(user, order);
+//        return new OrderPaymentInitResponseDto(sessionUrl);
+//    }
 
     private String getSessionUrl(UserEntity user, OrderEntity order){
         try {
@@ -89,6 +104,8 @@ public class OrderService {
                             .setCancelUrl(frontendUrl+"/payment/failure")
                             .setCustomer(customer.getId());
             for(OrderItemEntity orderItem : order.getItems()){
+                ProductEntity product = productRepository.findById(orderItem.getProductId()).orElseThrow(ProductNotFoundException::new);
+
                 sessionParamsBuilder.addLineItem(
                         SessionCreateParams.LineItem.builder()
                                 .setQuantity(1L)
@@ -100,8 +117,8 @@ public class OrderService {
                                                 )
                                                 .setProductData(
                                                         SessionCreateParams.LineItem.PriceData.ProductData.builder()
-                                                                .setName(orderItem.getProduct().getName())
-                                                                .setDescription(orderItem.getProduct().getDescription())
+                                                                .setName(product.getName())
+                                                                .setDescription(product.getDescription())
                                                                 .build()
                                                 )
                                                 .build()
@@ -139,8 +156,10 @@ public class OrderService {
             LocalDateTime expiresAt = LocalDateTime.now().plusMonths(1L);
 
 
-            order.getItems().forEach(orderItemEntity -> {
-                EntitlementEntity entitlement = new EntitlementEntity(user, orderItemEntity.getProduct(),order, grantedAt, expiresAt);
+            order.getItems().forEach(orderItem -> {
+                ProductEntity product = productRepository.findById(orderItem.getProductId()).orElseThrow(ProductNotFoundException::new);
+
+                EntitlementEntity entitlement = new EntitlementEntity(user, product, order, grantedAt, expiresAt);
                 entitlementRepository.save(entitlement);
             });
 

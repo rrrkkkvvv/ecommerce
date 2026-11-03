@@ -37,11 +37,7 @@ public class OrderEntity {
     )
     private List<OrderItemEntity> items;
 
-    @OneToOne(
-            cascade = CascadeType.ALL
-    )
-    @JoinColumn(name = "payment_id")
-    private PaymentEntity payment;
+
 
     public OrderEntity(){}
     public OrderEntity(UserEntity user, BigDecimal totalPrice, OrderStatus status, Currency currency, List<OrderItemEntity> items) {
@@ -101,12 +97,5 @@ public class OrderEntity {
         this.items = items;
     }
 
-    public PaymentEntity getPayment() {
-        return payment;
-    }
 
-    public void setPayment(PaymentEntity payment) {
-        this.payment = payment;
-        payment.setOrder(this);
-    }
 }

@@ -16,30 +16,31 @@ public class OrderItemEntity {
     @ManyToOne
     @JoinColumn(name = "order_id", nullable = false)
     private OrderEntity order;
+    @NotNull
+    private Long productId;
+    @NotNull
+    private String productName;
+    @NotNull
+    private BigDecimal unitPrice;
 
-    @ManyToOne
-    @JoinColumn(name = "product_id", nullable = false)
-    private ProductEntity product;
 
     @NotNull
     @Enumerated(EnumType.STRING)
     private Currency currency;
-    @NotNull
-    private BigDecimal unitPrice;
 
     public OrderItemEntity() {
     }
 
-    public OrderItemEntity(ProductEntity product, Currency currency, BigDecimal unitPrice) {
-        this.product = product;
-        this.currency = currency;
+    public OrderItemEntity( Long productId, String productName, BigDecimal unitPrice, Currency currency) {
+        this.productId = productId;
+        this.productName = productName;
         this.unitPrice = unitPrice;
+        this.currency = currency;
     }
 
     public Long getId() {
         return id;
     }
-
 
 
     public OrderEntity getOrder() {
@@ -50,20 +51,20 @@ public class OrderItemEntity {
         this.order = order;
     }
 
-    public ProductEntity getProduct() {
-        return product;
+    public Long getProductId() {
+        return productId;
     }
 
-    public void setProduct(ProductEntity product) {
-        this.product = product;
+    public void setProductId(Long productId) {
+        this.productId = productId;
     }
 
-    public Currency getCurrency() {
-        return currency;
+    public String getProductName() {
+        return productName;
     }
 
-    public void setCurrency(Currency currency) {
-        this.currency = currency;
+    public void setProductName(String productName) {
+        this.productName = productName;
     }
 
     public BigDecimal getUnitPrice() {
@@ -72,5 +73,13 @@ public class OrderItemEntity {
 
     public void setUnitPrice(BigDecimal unitPrice) {
         this.unitPrice = unitPrice;
+    }
+
+    public Currency getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(Currency currency) {
+        this.currency = currency;
     }
 }

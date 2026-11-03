@@ -15,8 +15,7 @@ public class PaymentEntity {
     private Long id;
 
 
-    @OneToOne(fetch = FetchType.LAZY, mappedBy = "payment")
-    private OrderEntity order;
+
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -29,8 +28,6 @@ public class PaymentEntity {
     @Enumerated(EnumType.STRING)
     private Currency currency;
 
-//    @NotNull
-//    private String provider;
 
     private String providerPaymentId;
 
@@ -49,13 +46,7 @@ public class PaymentEntity {
     }
 
 
-    public OrderEntity getOrder() {
-        return order;
-    }
 
-    public void setOrder(OrderEntity order) {
-        this.order = order;
-    }
 
     public PaymentStatus getStatus() {
         return status;
