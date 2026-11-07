@@ -6,12 +6,13 @@ import com.ecommerce.shop.domain.user.dto.JwtUserSubject;
 import com.ecommerce.shop.domain.order.service.OrderService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/order")
+@RequestMapping("/orders")
 public class OrderController {
     private final OrderService orderService;
 //    CREATE ORDER OPERATION
@@ -29,9 +30,13 @@ public class OrderController {
 //        OrderPaymentInitResponseDto response = orderService.initiateOrderPayment(currentUser.id());
 //        return ResponseEntity.status(200).body(response);
 //    }
-    @PostMapping("/createOrder")
+    @PostMapping()
     public ResponseEntity<Order> createOrder(@AuthenticationPrincipal JwtUserSubject currentUser){
         Order response = orderService.createOrder(currentUser.id());
         return ResponseEntity.status(200).body(response);
+    }
+    @PostMapping("/{orderId}/checkout")
+    public ResponseEntity<OrderPaymentInitResponseDto> createOrder(@PathVariable Long orderId, @AuthenticationPrincipal JwtUserSubject currentUser){
+        return ResponseEntity.status(200).body(orderService.initiateCheckoutAttempt(currentUser.id(), orderId));
     }
 }

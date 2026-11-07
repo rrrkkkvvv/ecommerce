@@ -1,8 +1,9 @@
 package com.ecommerce.shop.domain.payment.entity;
 
 public enum PaymentStatus {
+    INITIATED,
+    PROCESSING,
     SUCCEEDED,
-    CANCELED,
     FAILED,
-    PROCESSING
+    CANCELLED
 }

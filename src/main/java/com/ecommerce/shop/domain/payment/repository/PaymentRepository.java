@@ -12,8 +12,8 @@ public interface PaymentRepository extends JpaRepository<PaymentEntity, Long> {
     @Modifying
     @Query(value = """
           UPDATE payment
-          SET status = 'succeeded'
-          WHERE status = 'processing'
+          SET status = 'SUCCEEDED'
+          WHERE status = 'PROCESSING'
           AND provider_payment_id = :providerPaymentId
             """, nativeQuery = true)
         int makePaymentSucceeded(String providerPaymentId);

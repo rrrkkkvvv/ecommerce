@@ -5,6 +5,8 @@ import com.ecommerce.shop.domain.payment.entity.PaymentEntity;
 import com.ecommerce.shop.domain.user.entity.UserEntity;
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name="checkout_attempt")
 public class CheckoutAttemptEntity {
@@ -25,6 +27,33 @@ public class CheckoutAttemptEntity {
 
     @Enumerated(EnumType.STRING)
     private CheckoutAttemptStatus status;
+
+    private String sessionId;
+    private LocalDateTime sessionExpiresAt;
+
+    public LocalDateTime getSessionExpiresAt() {
+        return sessionExpiresAt;
+    }
+
+    public void setSessionExpiresAt(LocalDateTime sessionExpiresAt) {
+        this.sessionExpiresAt = sessionExpiresAt;
+    }
+
+    public CheckoutAttemptEntity(){}
+
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
+    }
+
     public OrderEntity getOrder() {
         return order;
     }

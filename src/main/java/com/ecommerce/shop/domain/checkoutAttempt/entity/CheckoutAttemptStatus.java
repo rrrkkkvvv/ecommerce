@@ -1,7 +1,9 @@
 package com.ecommerce.shop.domain.checkoutAttempt.entity;
 
 public enum CheckoutAttemptStatus {
-    INITIATED,
+    ACTIVE,
+    PAYMENT_PENDING,
     COMPLETED,
-    CANCELED
+    CANCELLED,
+    EXPIRED
 }
